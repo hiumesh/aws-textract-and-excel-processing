@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
+// import fs from "fs";
 import {
   TextractClient,
   // AnalyzeExpenseCommand,
@@ -80,8 +80,8 @@ export const POST = async (req: NextRequest) => {
 
       const processedData = processAnalyzeDocumentData({ Blocks: data.Blocks });
 
-      fs.writeFileSync("original.json", JSON.stringify(data));
-      fs.writeFileSync("processed.json", JSON.stringify(processedData));
+      // fs.writeFileSync("original.json", JSON.stringify(data));
+      // fs.writeFileSync("processed.json", JSON.stringify(processedData));
 
       return NextResponse.json(processedData);
     }
