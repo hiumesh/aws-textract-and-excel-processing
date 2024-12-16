@@ -70,10 +70,7 @@ export const POST = async (req: NextRequest) => {
         "text/csv",
       ].includes(file.type)
     ) {
-      const data = await extractColumns(file, file.type, [
-        "Column1",
-        "Column2",
-      ]);
+      const data = await extractColumns(file, file.type);
       return NextResponse.json({ rows: data });
     } else if (file.type === "application/pdf") {
       const buffer = Buffer.from(await file.arrayBuffer());

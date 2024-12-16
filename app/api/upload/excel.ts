@@ -7,7 +7,7 @@ export type TableRows = {
 };
 
 interface FilteredRow {
-  [key: string]: string;
+  [key: string]: string | null;
 }
 
 /**
@@ -19,8 +19,8 @@ interface FilteredRow {
  */
 export async function extractColumns(
   fileBuffer: Buffer | Blob,
-  fileType: string,
-  columns: string[]
+  fileType: string
+  // columns: string[]
 ): Promise<FilteredRow[]> {
   if (!fileType) {
     throw new Error("File type must be specified.");
@@ -32,17 +32,17 @@ export async function extractColumns(
     extension ===
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
   ) {
-    return processXlsx(fileBuffer as Blob, columns);
+    return processXlsx(fileBuffer as Blob);
   } else if (extension === "text/csv") {
     const buffer =
       fileBuffer instanceof Blob ? await blobToBuffer(fileBuffer) : fileBuffer;
-    return processCsv(buffer, columns);
+    return processCsv(buffer);
   } else {
     throw new Error(`Unsupported file format: .${extension}`);
   }
 }
 
-async function processXlsx(blob: Blob, columns: string[]): FilteredRow[] {
+async function processXlsx(blob: Blob): Promise<FilteredRow[]> {
   const buffer = await blob.arrayBuffer();
   const workbook = xlsx.read(buffer, { type: "array" });
   const sheetName = workbook.SheetNames[0];
@@ -60,18 +60,20 @@ async function processXlsx(blob: Blob, columns: string[]): FilteredRow[] {
   //   return filteredRow;
   // });
 
-  return jsonData.map((row) => {
-    const [key1, key2] = Object.keys(row);
-    return {
-      Column1: key1 && row[key1] !== undefined ? row[key1] : null,
-      Column2: key2 && row[key2] !== undefined ? row[key2] : null,
-    };
-  });
+  return (
+    jsonData?.map((row) => {
+      const [key1, key2] = Object.keys(row);
+      return {
+        Column1: key1 && row[key1] !== undefined ? row[key1] : null,
+        Column2: key2 && row[key2] !== undefined ? row[key2] : null,
+      };
+    }) || []
+  );
 }
 
 function processCsv(
-  fileBuffer: Buffer,
-  columns: string[]
+  fileBuffer: Buffer
+  // columns: string[]
 ): Promise<FilteredRow[]> {
   return new Promise((resolve, reject) => {
     const results: FilteredRow[] = [];
@@ -79,7 +81,7 @@ function processCsv(
     const stream = Readable.from(fileBuffer);
     stream
       .pipe(csvParser())
-      .on("data", (row: Record<string, any>) => {
+      .on("data", (row: Record<string, string>) => {
         // const filteredRow: FilteredRow = {};
         // columns.forEach((column) => {
         //   if (row[column] !== undefined) {

@@ -64,7 +64,7 @@ export default function Home() {
                   <div className="border max-w-sm py-1 px-2">{r.Query}</div>
                   <div className="border max-w-sm py-1 px-2">{r.Result}</div>
                   <div className="border max-w-sm text-blue-500 py-1 px-2">
-                    {Math.floor(r.Confidence)}%
+                    {r.Confidence && Math.floor(r.Confidence)}%
                   </div>
                 </li>
               ))}

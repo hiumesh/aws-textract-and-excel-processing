@@ -2,10 +2,10 @@
 import { Block } from "@aws-sdk/client-textract";
 
 export type ProcessedData = {
-  text: { Text: string; Confidence: number }[];
-  forms: { Key: string; Value: string; Confidence: number }[];
-  tables: { Text: string; Confidence: number }[][][];
-  queries: { Query: string; Result: string; Confidence: number }[];
+  text: { Text: string; Confidence?: number }[];
+  forms: { Key: string; Value: string; Confidence?: number }[];
+  tables: { Text: string; Confidence?: number }[][][];
+  queries: { Query: string; Result: string; Confidence?: number }[];
 };
 
 /**
@@ -53,12 +53,12 @@ export function processAnalyzeDocumentData(data: {
           }
         }
         break;
-      case "TABLE":
-        const table = extractTable(block, blockMap);
-        if (table) {
-          results.tables.push(table);
-        }
-        break;
+      // case "TABLE":
+      //   const table = extractTable(block, blockMap);
+      //   if (table) {
+      //     results.tables.push(table);
+      //   }
+      //   break;
       case "LINE":
         if (block.Text) {
           results.text.push({
@@ -116,15 +116,15 @@ function findQueryResultBlock(
  * @param blockMap - Map of block Ids to blocks
  * @returns The extracted text
  */
-function extractText(block: Block, blockMap: Map<string, Block>): string {
-  if (!block.Relationships) return "";
+function extractText(block?: Block, blockMap?: Map<string, Block>): string {
+  if (!block?.Relationships) return "";
 
   let text = "";
 
   block.Relationships.forEach((relationship) => {
     if (relationship.Type === "CHILD" && relationship.Ids) {
       relationship.Ids.forEach((childId) => {
-        const childBlock = blockMap.get(childId);
+        const childBlock = blockMap?.get(childId);
         if (childBlock && childBlock.BlockType === "WORD") {
           text += `${childBlock.Text} `;
         }
@@ -162,45 +162,51 @@ function extractValue(block: Block, blockMap: Map<string, Block>): string {
  * @param blockMap - Map of block Ids to blocks
  * @returns Array of rows with cells containing text and confidence
  */
-function extractTable(
-  block: Block,
-  blockMap: Map<string, Block>
-): { Rows: { Cells: { Text: string; Confidence: number }[] }[] } {
-  const table: { Rows: { Cells: { Text: string; Confidence: number }[] }[] } = {
-    Rows: [],
-  };
+// function extractTable(
+//   block: Block,
+//   blockMap: Map<string, Block>
+// ): { Rows: { Cells: { Text: string; Confidence?: number }[] }[] } {
+//   const table: { Rows: { Cells: { Text: string; Confidence?: number }[] }[] } =
+//     {
+//       Rows: [],
+//     };
 
-  if (!block.Relationships) return table;
+//   if (!block.Relationships) return table;
 
-  block.Relationships.forEach((relationship) => {
-    if (relationship.Type === "CHILD") {
-      relationship.Ids.forEach((rowId) => {
-        const rowBlock = blockMap.get(rowId);
-        if (rowBlock && rowBlock.BlockType === "ROW") {
-          const row: { Cells: { Text: string; Confidence: number }[] } = {
-            Cells: [],
-          };
+//   block.Relationships.forEach((relationship) => {
+//     if (relationship.Type === "CHILD" && relationship.Ids) {
+//       relationship.Ids.forEach((rowId) => {
+//         const rowBlock = blockMap.get(rowId);
+//         if (
+//           rowBlock &&
+//           "BlockType" in rowBlock &&
+//           rowBlock.BlockType !== undefined &&
+//           rowBlock.BlockType === ("ROW" as BlockType)
+//         ) {
+//           const row: { Cells: { Text: string; Confidence?: number }[] } = {
+//             Cells: [],
+//           };
 
-          rowBlock.Relationships?.forEach((rowRelationship) => {
-            if (rowRelationship.Type === "CHILD") {
-              rowRelationship.Ids.forEach((cellId) => {
-                const cellBlock = blockMap.get(cellId);
-                if (cellBlock && cellBlock.BlockType === "CELL") {
-                  const cellText = extractText(cellBlock, blockMap);
-                  row.Cells.push({
-                    Text: cellText,
-                    Confidence: cellBlock.Confidence,
-                  });
-                }
-              });
-            }
-          });
+//           rowBlock.Relationships?.forEach((rowRelationship) => {
+//             if (rowRelationship.Type === "CHILD" && rowRelationship.Ids) {
+//               rowRelationship.Ids.forEach((cellId) => {
+//                 const cellBlock = blockMap.get(cellId);
+//                 if (cellBlock && cellBlock.BlockType === "CELL") {
+//                   const cellText = extractText(cellBlock, blockMap);
+//                   row.Cells.push({
+//                     Text: cellText,
+//                     Confidence: cellBlock.Confidence,
+//                   });
+//                 }
+//               });
+//             }
+//           });
 
-          table.Rows.push(row);
-        }
-      });
-    }
-  });
+//           table.Rows.push(row);
+//         }
+//       });
+//     }
+//   });
 
-  return table;
-}
+//   return table;
+// }
