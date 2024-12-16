@@ -59,7 +59,10 @@ export const POST = async (req: NextRequest) => {
     const formData = await req.formData();
     const body = Object.fromEntries(formData);
     const file = (body.file as Blob) || null;
+    const MAX_SIZE_MB = 5;
 
+    const fileSizeInMB = file.size / (1024 * 1024);
+    if (fileSizeInMB > MAX_SIZE_MB) throw new Error("File too large!");
     if (!file) throw new Error("File not found!");
 
     console.log(file.type);
@@ -87,7 +90,7 @@ export const POST = async (req: NextRequest) => {
     }
     throw new Error("Unsupported file type");
   } catch (error) {
-    console.log(error);
+    console.error(error);
     if (error instanceof Error) {
       return NextResponse.json(
         {
